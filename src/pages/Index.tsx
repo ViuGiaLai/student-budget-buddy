@@ -1,13 +1,19 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { MobileLayout } from '@/components/layout/MobileLayout';
+import { Header } from '@/components/home/Header';
+import { BalanceCard } from '@/components/home/BalanceCard';
+import { QuickActions } from '@/components/home/QuickActions';
+import { BudgetOverview } from '@/components/home/BudgetOverview';
+import { RecentTransactions } from '@/components/home/RecentTransactions';
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <MobileLayout>
+      <Header />
+      <BalanceCard />
+      <QuickActions />
+      <BudgetOverview />
+      <RecentTransactions />
+    </MobileLayout>
   );
 };
 
