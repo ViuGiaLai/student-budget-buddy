@@ -1,0 +1,20 @@
+{
+  "cwd": "./",
+  "name": "student-budget-buddy",
+  "framework": "react-typescript",
+  "cssPreProcessor": "postcss",
+  "includeTailwind": true,
+  "package": "zmp-ui",
+  "stateManagement": "zustand",
+  "newProject": false,
+  "template": "single-view",
+  "theming": {
+    "customColor": true,
+    "color": "#0b824f",
+    "darkTheme": false,
+    "iconFonts": true,
+    "fillBars": false,
+    "useUiKits": true
+  }
+}
+

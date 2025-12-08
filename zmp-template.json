@@ -1,0 +1,16 @@
+{
+  "name": "Student Budget Buddy",
+  "options": {
+    "primaryColor": {
+      "title": "Primary color",
+      "type": "color",
+      "optional": true
+    },
+    "supportEmail": {
+      "title": "Support email",
+      "type": "string",
+      "optional": true
+    }
+  }
+}
+
