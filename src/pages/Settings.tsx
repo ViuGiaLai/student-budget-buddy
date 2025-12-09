@@ -56,7 +56,7 @@ const Settings = () => {
   
   return (
     <MobileLayout>
-      <header className="px-4 py-4 safe-area-top">
+      <header className="px-4 py-4 pt-5 safe-area-top" style={{marginTop: "20px"}}>
         <h1 className="font-bold text-xl">Cài đặt</h1>
       </header>
       
@@ -205,7 +205,9 @@ const Settings = () => {
           <div className="bg-card rounded-xl border border-border/50">
             <div className="flex items-center justify-between p-4">
               <span className="text-sm">Phiên bản</span>
-              <span className="text-sm text-muted-foreground">1.0.0</span>
+              <span className="text-sm text-muted-foreground">
+                {import.meta.env.VITE_APP_VERSION}
+              </span>
             </div>
           </div>
         </section>

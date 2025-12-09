@@ -33,7 +33,7 @@ const Statistics = () => {
   
   return (
     <MobileLayout>
-      <header className="px-4 py-4 safe-area-top"><h1 className="font-bold text-xl">Thống kê</h1></header>
+      <header className="px-4 py-4 pt-5 safe-area-top" style={{marginTop: "20px"}}><h1 className="font-bold text-xl">Thống kê</h1></header>
       
       <div className="px-4 mb-4">
         <div className="flex bg-secondary rounded-xl p-1">

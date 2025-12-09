@@ -27,8 +27,8 @@ export const BottomNavigation = () => {
                 to={item.path}
                 className="relative -mt-6"
               >
-                <div className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center shadow-elevated transform transition-transform active:scale-95">
-                  <Icon className="w-6 h-6 text-primary-foreground" />
+                <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center shadow-elevated transform transition-transform active:scale-95">
+                  <Icon className="w-5 h-5 text-primary-foreground" />
                 </div>
               </Link>
             );
@@ -39,14 +39,14 @@ export const BottomNavigation = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors",
+                "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors",
                 isActive 
                   ? "text-primary" 
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Icon className={cn("w-5 h-5", isActive && "stroke-[2.5]")} />
-              <span className="text-xs font-medium">{item.label}</span>
+              <Icon className={cn("w-4 h-4", isActive && "stroke-[2.5]")} />
+              <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );
         })}

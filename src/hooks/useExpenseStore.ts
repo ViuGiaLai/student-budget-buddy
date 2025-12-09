@@ -2,27 +2,37 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Transaction, Budget, SavingsGoal, Category } from '@/types/expense';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { transactionService } from '@/services/transactionService';
+import { budgetService } from '@/services/budgetService';
+import { savingsGoalService } from '@/services/savingsGoalService';
+
+const IS_DEV = import.meta.env.DEV;
 
 interface ExpenseState {
   transactions: Transaction[];
   budgets: Budget[];
   savingsGoals: SavingsGoal[];
+  userId: string | null;
+  isLoading: boolean;
+  
+  // Initialize store
+  initializeStore: (userId: string) => Promise<void>;
   
   // Transaction actions
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
-  updateTransaction: (id: string, transaction: Partial<Transaction>) => void;
-  deleteTransaction: (id: string) => void;
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+  updateTransaction: (id: string, transaction: Partial<Transaction>) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
   
   // Budget actions
-  addBudget: (budget: Omit<Budget, 'id' | 'spent'>) => void;
-  updateBudget: (id: string, budget: Partial<Budget>) => void;
-  deleteBudget: (id: string) => void;
+  addBudget: (budget: Omit<Budget, 'id' | 'spent'>) => Promise<void>;
+  updateBudget: (id: string, budget: Partial<Budget>) => Promise<void>;
+  deleteBudget: (id: string) => Promise<void>;
   
   // Savings goals actions
-  addSavingsGoal: (goal: Omit<SavingsGoal, 'id'>) => void;
-  updateSavingsGoal: (id: string, goal: Partial<SavingsGoal>) => void;
-  deleteSavingsGoal: (id: string) => void;
-  addToSavings: (id: string, amount: number) => void;
+  addSavingsGoal: (goal: Omit<SavingsGoal, 'id'>) => Promise<void>;
+  updateSavingsGoal: (id: string, goal: Partial<SavingsGoal>) => Promise<void>;
+  deleteSavingsGoal: (id: string) => Promise<void>;
+  addToSavings: (id: string, amount: number) => Promise<void>;
   
   // Computed values
   getTotalIncome: (period?: 'week' | 'month' | 'all') => number;
@@ -34,7 +44,7 @@ interface ExpenseState {
   searchTransactions: (query: string) => Transaction[];
 }
 
-const generateId = () => Math.random().toString(36).substring(2, 15);
+const generateId = () => crypto.randomUUID();
 
 const getDateRange = (period?: 'week' | 'month' | 'all'): { start: Date; end: Date } | null => {
   if (!period || period === 'all') return null;
@@ -55,7 +65,7 @@ const filterTransactionsByPeriod = (transactions: Transaction[], period?: 'week'
   );
 };
 
-// Sample data for demo
+// Sample data for development only
 const sampleTransactions: Transaction[] = [
   { id: '1', type: 'expense', amount: 35000, category: 'food', description: 'Cơm trưa', date: new Date(), note: '' },
   { id: '2', type: 'expense', amount: 150000, category: 'education', description: 'Sách giáo trình', date: new Date(Date.now() - 86400000), note: '' },
@@ -79,77 +89,271 @@ const sampleGoals: SavingsGoal[] = [
 export const useExpenseStore = create<ExpenseState>()(
   persist(
     (set, get) => ({
-      transactions: sampleTransactions,
-      budgets: sampleBudgets,
-      savingsGoals: sampleGoals,
-      
-      addTransaction: (transaction) => {
-        const newTransaction = { ...transaction, id: generateId() };
-        set((state) => ({ 
-          transactions: [newTransaction, ...state.transactions] 
-        }));
+      transactions: IS_DEV ? sampleTransactions : [],
+      budgets: IS_DEV ? sampleBudgets : [],
+      savingsGoals: IS_DEV ? sampleGoals : [],
+      userId: null,
+      isLoading: false,
+
+      // Initialize store with real data from Supabase
+      initializeStore: async (userId: string) => {
+        set({ userId, isLoading: true });
+        
+        try {
+          if (IS_DEV) {
+            // Dev mode: use sample data
+            set({
+              transactions: sampleTransactions,
+              budgets: sampleBudgets,
+              savingsGoals: sampleGoals,
+              isLoading: false
+            });
+          } else {
+            // Production: fetch real data from Supabase
+            const [transactions, budgets, goals] = await Promise.all([
+              transactionService.getTransactions(userId),
+              budgetService.getBudgets(userId),
+              savingsGoalService.getSavingsGoals(userId)
+            ]);
+
+            set({
+              transactions,
+              budgets,
+              savingsGoals: goals,
+              isLoading: false
+            });
+          }
+        } catch (error) {
+          console.error('Failed to initialize store:', error);
+          set({ isLoading: false });
+        }
       },
       
-      updateTransaction: (id, updates) => {
-        set((state) => ({
-          transactions: state.transactions.map(t => 
-            t.id === id ? { ...t, ...updates } : t
-          )
-        }));
+      addTransaction: async (transaction) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          const newTransaction = { ...transaction, id: generateId() };
+          set((state) => ({
+            transactions: [newTransaction, ...state.transactions]
+          }));
+        } else {
+          const result = await transactionService.addTransaction(userId, transaction);
+          if (result) {
+            set((state) => ({
+              transactions: [result, ...state.transactions]
+            }));
+          }
+        }
       },
       
-      deleteTransaction: (id) => {
-        set((state) => ({
-          transactions: state.transactions.filter(t => t.id !== id)
-        }));
+      updateTransaction: async (id, updates) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          set((state) => ({
+            transactions: state.transactions.map(t =>
+              t.id === id ? { ...t, ...updates } : t
+            )
+          }));
+        } else {
+          const result = await transactionService.updateTransaction(id, updates);
+          if (result) {
+            set((state) => ({
+              transactions: state.transactions.map(t =>
+                t.id === id ? result : t
+              )
+            }));
+          }
+        }
       },
       
-      addBudget: (budget) => {
-        set((state) => ({
-          budgets: [...state.budgets, { ...budget, id: generateId(), spent: 0 }]
-        }));
+      deleteTransaction: async (id) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          set((state) => ({
+            transactions: state.transactions.filter(t => t.id !== id)
+          }));
+        } else {
+          const success = await transactionService.deleteTransaction(id);
+          if (success) {
+            set((state) => ({
+              transactions: state.transactions.filter(t => t.id !== id)
+            }));
+          }
+        }
       },
       
-      updateBudget: (id, updates) => {
-        set((state) => ({
-          budgets: state.budgets.map(b => 
-            b.id === id ? { ...b, ...updates } : b
-          )
-        }));
+      addBudget: async (budget) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          set((state) => ({
+            budgets: [...state.budgets, { ...budget, id: generateId(), spent: 0 }]
+          }));
+        } else {
+          const result = await budgetService.addBudget(userId, budget);
+          if (result) {
+            set((state) => ({
+              budgets: [...state.budgets, result]
+            }));
+          }
+        }
       },
       
-      deleteBudget: (id) => {
-        set((state) => ({
-          budgets: state.budgets.filter(b => b.id !== id)
-        }));
+      updateBudget: async (id, updates) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          set((state) => ({
+            budgets: state.budgets.map(b =>
+              b.id === id ? { ...b, ...updates } : b
+            )
+          }));
+        } else {
+          const result = await budgetService.updateBudget(id, updates);
+          if (result) {
+            set((state) => ({
+              budgets: state.budgets.map(b =>
+                b.id === id ? result : b
+              )
+            }));
+          }
+        }
       },
       
-      addSavingsGoal: (goal) => {
-        set((state) => ({
-          savingsGoals: [...state.savingsGoals, { ...goal, id: generateId() }]
-        }));
+      deleteBudget: async (id) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          set((state) => ({
+            budgets: state.budgets.filter(b => b.id !== id)
+          }));
+        } else {
+          const success = await budgetService.deleteBudget(id);
+          if (success) {
+            set((state) => ({
+              budgets: state.budgets.filter(b => b.id !== id)
+            }));
+          }
+        }
       },
       
-      updateSavingsGoal: (id, updates) => {
-        set((state) => ({
-          savingsGoals: state.savingsGoals.map(g => 
-            g.id === id ? { ...g, ...updates } : g
-          )
-        }));
+      addSavingsGoal: async (goal) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          set((state) => ({
+            savingsGoals: [...state.savingsGoals, { ...goal, id: generateId() }]
+          }));
+        } else {
+          const result = await savingsGoalService.addSavingsGoal(userId, goal);
+          if (result) {
+            set((state) => ({
+              savingsGoals: [...state.savingsGoals, result]
+            }));
+          }
+        }
       },
       
-      deleteSavingsGoal: (id) => {
-        set((state) => ({
-          savingsGoals: state.savingsGoals.filter(g => g.id !== id)
-        }));
+      updateSavingsGoal: async (id, updates) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          set((state) => ({
+            savingsGoals: state.savingsGoals.map(g =>
+              g.id === id ? { ...g, ...updates } : g
+            )
+          }));
+        } else {
+          const result = await savingsGoalService.updateSavingsGoal(id, updates);
+          if (result) {
+            set((state) => ({
+              savingsGoals: state.savingsGoals.map(g =>
+                g.id === id ? result : g
+              )
+            }));
+          }
+        }
       },
       
-      addToSavings: (id, amount) => {
-        set((state) => ({
-          savingsGoals: state.savingsGoals.map(g => 
-            g.id === id ? { ...g, currentAmount: g.currentAmount + amount } : g
-          )
-        }));
+      deleteSavingsGoal: async (id) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          set((state) => ({
+            savingsGoals: state.savingsGoals.filter(g => g.id !== id)
+          }));
+        } else {
+          const success = await savingsGoalService.deleteSavingsGoal(id);
+          if (success) {
+            set((state) => ({
+              savingsGoals: state.savingsGoals.filter(g => g.id !== id)
+            }));
+          }
+        }
+      },
+      
+      addToSavings: async (id, amount) => {
+        const userId = get().userId;
+        if (!userId) {
+          console.error('User not logged in');
+          return;
+        }
+
+        if (IS_DEV) {
+          set((state) => ({
+            savingsGoals: state.savingsGoals.map(g =>
+              g.id === id ? { ...g, currentAmount: g.currentAmount + amount } : g
+            )
+          }));
+        } else {
+          const result = await savingsGoalService.addToSavings(id, amount);
+          if (result) {
+            set((state) => ({
+              savingsGoals: state.savingsGoals.map(g =>
+                g.id === id ? result : g
+              )
+            }));
+          }
+        }
       },
       
       getTotalIncome: (period) => {
@@ -202,14 +406,14 @@ export const useExpenseStore = create<ExpenseState>()(
       },
       
       getTransactionsByDateRange: (start, end) => {
-        return get().transactions.filter(t => 
+        return get().transactions.filter(t =>
           isWithinInterval(new Date(t.date), { start, end })
         );
       },
       
       searchTransactions: (query) => {
         const lowerQuery = query.toLowerCase();
-        return get().transactions.filter(t => 
+        return get().transactions.filter(t =>
           t.description.toLowerCase().includes(lowerQuery) ||
           t.note?.toLowerCase().includes(lowerQuery)
         );

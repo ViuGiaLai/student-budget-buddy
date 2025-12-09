@@ -75,7 +75,7 @@ const Goals = () => {
   
   return (
     <MobileLayout>
-      <header className="px-4 py-4 flex items-center justify-between safe-area-top">
+      <header className="px-4 py-4 pt-5 flex items-center justify-between safe-area-top" style={{marginTop: "20px"}}>
         <h1 className="font-bold text-xl">Mục tiêu tiết kiệm</h1>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>

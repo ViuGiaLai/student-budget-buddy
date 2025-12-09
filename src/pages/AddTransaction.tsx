@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useExpenseStore } from '@/hooks/useExpenseStore';
+import { useAuth } from '@/contexts/AuthContext';
 import { CATEGORIES, Category, TransactionType } from '@/types/expense';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -17,6 +18,7 @@ const iconMap: Record<string, LucideIcon> = {
 const AddTransaction = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const { addTransaction } = useExpenseStore();
   
   const initialType = searchParams.get('type') as TransactionType || 'expense';
@@ -32,7 +34,7 @@ const AddTransaction = () => {
   
   const displayCategories = type === 'income' ? incomeCategories : expenseCategories;
   
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!amount || parseFloat(amount) <= 0) {
       toast.error('Vui lòng nhập số tiền hợp lệ');
       return;
@@ -41,16 +43,22 @@ const AddTransaction = () => {
       toast.error('Vui lòng nhập mô tả');
       return;
     }
-    addTransaction({
-      type,
-      amount: parseFloat(amount.replace(/[,.]/g, '')),
-      category,
-      description: description.trim(),
-      date: new Date(),
-      note: note.trim(),
-    });
-    toast.success(type === 'income' ? 'Đã thêm thu nhập' : 'Đã thêm chi tiêu');
-    navigate('/');
+    
+    try {
+      await addTransaction({
+        type,
+        amount: parseFloat(amount.replace(/[,.]/g, '')),
+        category,
+        description: description.trim(),
+        date: new Date(),
+        note: note.trim(),
+      });
+      toast.success(type === 'income' ? 'Đã thêm thu nhập' : 'Đã thêm chi tiêu');
+      navigate('/');
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      toast.error('Có lỗi xảy ra');
+    }
   };
   
   const formatInputAmount = (value: string) => {
@@ -60,7 +68,7 @@ const AddTransaction = () => {
   
   return (
     <MobileLayout showNav={false}>
-      <header className="px-4 py-4 flex items-center gap-4 border-b border-border safe-area-top">
+      <header className="px-4 py-4 pt-5 flex items-center gap-4 border-b border-border safe-area-top" style={{marginTop: "20px"}}>
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-muted rounded-lg">
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -117,7 +125,7 @@ const AddTransaction = () => {
       </div>
       
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border max-w-md mx-auto safe-area-bottom">
-        <Button onClick={handleSubmit} className="w-full h-12 text-base font-semibold gradient-primary">
+        <Button onClick={handleSubmit} disabled={!user} className="w-full h-12 text-base font-semibold gradient-primary">
           <Check className="w-5 h-5 mr-2" />Lưu giao dịch
         </Button>
       </div>

@@ -60,7 +60,7 @@ const Notifications = () => {
   
   return (
     <MobileLayout showNav={false}>
-      <header className="px-4 py-4 border-b border-border safe-area-top">
+      <header className="px-4 py-4 pt-5 border-b border-border safe-area-top"style={{marginTop: "20px"}}>
         <div className="flex items-center gap-4">
           <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-muted rounded-lg">
             <ArrowLeft className="w-5 h-5" />

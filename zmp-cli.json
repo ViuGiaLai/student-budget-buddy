@@ -1,6 +1,6 @@
 {
   "cwd": "./",
-  "name": "student-budget-buddy",
+  "name": "MyBudget",
   "framework": "react-typescript",
   "cssPreProcessor": "postcss",
   "includeTailwind": true,
