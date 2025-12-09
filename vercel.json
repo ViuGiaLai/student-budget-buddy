@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/zalo-webhook",
+      "destination": "/api/zalo-webhook"
+    }
+  ]
+}
