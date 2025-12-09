@@ -12,22 +12,37 @@ export default async function handler(req, res) {
   try {
     const supabaseUrl = 'https://ieacrgscsrqtfxzebqdv.supabase.co/functions/v1/zalo-webhook';
 
+    // Get raw body from request
+    let body = '';
+    if (typeof req.body === 'string') {
+      body = req.body;
+    } else if (req.body instanceof Buffer) {
+      body = req.body.toString();
+    } else {
+      body = JSON.stringify(req.body);
+    }
+
     // Forward the request to Supabase
     const response = await fetch(supabaseUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...req.headers, // Include original headers from Zalo
       },
-      body: JSON.stringify(req.body),
+      body: body,
     });
 
     const data = await response.text();
+    
+    // Log for debugging
+    console.log('Zalo webhook forwarded:', {
+      statusCode: response.status,
+      responseBody: data,
+    });
     
     // Return response from Supabase to Zalo
     res.status(response.status).send(data);
   } catch (error) {
     console.error('Webhook proxy error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
