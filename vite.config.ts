@@ -8,7 +8,7 @@ import zaloMiniApp from "zmp-vite-plugin";
 export default defineConfig(({ mode }) => ({
   base: "",
   build: {
-    outDir: "www",
+    outDir: "dist",
   },
   server: {
     host: "::",
