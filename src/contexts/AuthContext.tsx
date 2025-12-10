@@ -17,14 +17,12 @@ const generateRandomAvatar = (): string => {
 // Helper to normalize Zalo display name
 const getDisplayName = (userInfo: any) => {
     return (
-        userInfo?.displayName ||
-        userInfo?.name ||
-        userInfo?.user_alias ||
-        userInfo?.id ||
-        'Sinh viên'
+      userInfo?.displayName ||
+      userInfo?.name ||
+      userInfo?.user_alias ||
+      'Sinh viên'
     );
 };
-
 // Helper function to get user info from Zalo
 const getZaloUserInfo = async (): Promise<User | null> => {
     try {
