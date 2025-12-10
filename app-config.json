@@ -1,18 +1,22 @@
 {
   "app": {
-    "title": "Student Budget Buddy",
+    "title": "Sổ chi tiêu Viu",
+    "textColor": "black",
     "headerColor": "#0b824f",
-    "textColor": "white",
     "statusBarColor": "#0b824f",
-    "leftButton": "back"
+    "statusBar": "normal",
+    "leftButton": "back",
+    "actionBarHidden": false,
+    "hideAndroidBottomNavigationBar": false,
+    "hideIOSSafeAreaBottom": true,
+    "selfControlLoading": false
   },
-  "debug": true,
   "listCSS": [],
   "listSyncJS": [],
   "listAsyncJS": [],
-  "pages": [],
   "template": {
-    "name": "student-budget-buddy"
+    "name": "Sổ chi tiêu Viu",
+    "apiUrl": "",
+    "oaIDtoOpenChat": "4318657068771012646"
   }
 }
-

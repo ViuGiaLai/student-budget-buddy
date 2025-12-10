@@ -2,7 +2,6 @@ export type User = {
   id: string;
   name: string;
   avatar?: string;
-  phone?: string;
   email?: string;
   isLoggedIn: boolean;
   isDev?: boolean;
@@ -15,7 +14,6 @@ export const MOCK_USER: User = {
   id: 'dev-user-123',
   name: 'Viu Sinh Viên',
   email: 'dev@example.com',
-  phone: '0900000000',
   avatar: 'https://i.pravatar.cc/150?img=32',
   isLoggedIn: true,
   isDev: true,

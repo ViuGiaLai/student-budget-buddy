@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getUserInfo, getPhoneNumber } from 'zmp-sdk';
+import { getUserInfo } from 'zmp-sdk';
 import { User, AuthContextType, MOCK_USER } from '@/types';
 import { supabase } from '@/lib/supabase';
 
@@ -14,6 +14,17 @@ const generateRandomAvatar = (): string => {
     return `https://i.pravatar.cc/150?img=${randomImg}`;
 };
 
+// Helper to normalize Zalo display name
+const getDisplayName = (userInfo: any) => {
+    return (
+        userInfo?.name ||
+        userInfo?.displayName ||
+        userInfo?.user_alias ||
+        userInfo?.id ||
+        'Sinh viên'
+    );
+};
+
 // Helper function to get user info from Zalo
 const getZaloUserInfo = async (): Promise<User | null> => {
     try {
@@ -24,24 +35,10 @@ const getZaloUserInfo = async (): Promise<User | null> => {
             });
         });
 
-        let phone = '';
-        try {
-            const phoneData = await new Promise<any>((resolve, reject) => {
-                getPhoneNumber({
-                    success: (data) => resolve(data),
-                    fail: (error) => reject(error)
-                });
-            });
-            phone = phoneData.number || '';
-        } catch (error) {
-            console.warn('Could not get phone number:', error);
-        }
-
         const userData: User = {
             id: userInfo.id,
-            name: userInfo.name || 'Người dùng',
+            name: getDisplayName(userInfo),
             avatar: generateRandomAvatar(), // Use random avatar instead of Zalo's
-            phone: phone,
             email: userInfo.email || `${userInfo.id}@zalo.vn`,
             isLoggedIn: true,
             isDev: false,
@@ -71,7 +68,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                         id: userData.id,
                         name: userData.name,
                         email: userData.email,
-                        phone: userData.phone,
                         avatar: userData.avatar,
                         is_dev: userData.isDev || false,
                         created_at: userData.createdAt || new Date().toISOString(),

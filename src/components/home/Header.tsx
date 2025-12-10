@@ -55,7 +55,7 @@ export const Header = () => {
             <Bell className="w-5 h-5 text-muted-foreground" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-accent-orange rounded-full" />
           </Link>
-          <Button 
+          {/* <Button 
             variant="ghost" 
             size="icon" 
             onClick={handleLogout}
@@ -63,7 +63,7 @@ export const Header = () => {
             disabled={loading}
           >
             <LogOut className="w-5 h-5" />
-          </Button>
+          </Button> */}
         </div>
       </div>
     </header>

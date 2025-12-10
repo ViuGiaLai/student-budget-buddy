@@ -1,7 +1,16 @@
 import { ReactNode, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { setNavigationBarTitle } from 'zmp-sdk/apis';
 import zp from 'zmp-sdk';
 import { BottomNavigation } from './BottomNavigation';
+
+const normalizePath = (raw: string) => {
+  if (!raw) return '/';
+  const noHash = raw.split('#')[0];
+  const noQuery = noHash.split('?')[0];
+  const trimmed = noQuery.replace(/\/+$/, '');
+  return trimmed || '/';
+};
 
 const TITLE_MAP: Record<string, string> = {
   '/': 'Trang chủ',
@@ -24,23 +33,28 @@ export const MobileLayout = ({ children, showNav = true }: MobileLayoutProps) =>
   const location = useLocation();
 
   useEffect(() => {
-    const title = TITLE_MAP[location.pathname] || 'Student Budget Buddy';
+    const hashPath = window.location.hash?.replace(/^#/, '') || '';
+    const rawPath = location.pathname === '/' && hashPath ? hashPath : location.pathname;
+    const path = normalizePath(rawPath);
+    const title = TITLE_MAP[path] || 'Sổ chi tiêu Viu';
     document.title = title;
 
-    // Cập nhật title cho thanh header của mini app (nếu SDK khả dụng)
-    try {
-      const zmp = zp as any;
-      // zp.ready đảm bảo gọi đúng khi đang chạy trong môi trường mini app
-      zmp?.ready?.(() => {
-        try {
-          zmp?.setNavigationBarTitle?.({ title });
-        } catch (error) {
-          console.warn('Unable to set navigation bar title', error);
-        }
-      });
-    } catch (error) {
-      console.warn('ZP SDK not available', error);
-    }
+    const applyTitle = () => {
+      try {
+        // Ưu tiên API mới
+        setNavigationBarTitle({ title });
+      } catch (error) {
+        // Fallback API cũ nếu cần
+        const zmpAny = zp as any;
+        zmpAny?.setNavigationBarTitle?.({ title });
+      }
+    };
+
+    applyTitle(); // web/h5 fallback
+
+    // Đảm bảo gọi khi mini app đã sẵn sàng
+    const zmp = zp as any;
+    zmp?.ready?.(() => applyTitle());
   }, [location.pathname]);
 
   return (

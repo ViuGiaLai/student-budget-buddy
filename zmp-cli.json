@@ -1,6 +1,6 @@
 {
   "cwd": "./",
-  "name": "MyBudget",
+  "name": "Sổ chi tiêu Viu",
   "framework": "react-typescript",
   "cssPreProcessor": "postcss",
   "includeTailwind": true,

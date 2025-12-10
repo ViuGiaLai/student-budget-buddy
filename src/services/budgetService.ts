@@ -14,7 +14,10 @@ export const budgetService = {
       return [];
     }
 
-    return data || [];
+    return (data || []).map((item) => ({
+      ...item,
+      limit: item.budget_limit ?? item.limit ?? 0, // normalize column name
+    }));
   },
 
   // Lấy ngân sách theo danh mục
@@ -35,7 +38,12 @@ export const budgetService = {
       return null;
     }
 
-    return data;
+    return data
+      ? {
+          ...data,
+          limit: data.budget_limit ?? data.limit ?? 0,
+        }
+      : null;
   },
 
   // Thêm ngân sách mới
@@ -50,7 +58,7 @@ export const budgetService = {
           id: crypto.randomUUID(),
           user_id: userId,
           category: budget.category,
-          limit: budget.limit,
+          budget_limit: budget.limit,
           period: budget.period,
           spent: 0,
         },
@@ -63,14 +71,22 @@ export const budgetService = {
       return null;
     }
 
-    return data;
+    return data
+      ? {
+          ...data,
+          limit: data.budget_limit ?? data.limit ?? 0,
+        }
+      : null;
   },
 
   // Cập nhật ngân sách
   async updateBudget(id: string, updates: Partial<Budget>): Promise<Budget | null> {
     const { data, error } = await supabase
       .from('budgets')
-      .update(updates)
+      .update({
+        ...updates,
+        ...(updates.limit !== undefined ? { budget_limit: updates.limit } : {}),
+      })
       .eq('id', id)
       .select()
       .single();
@@ -80,7 +96,12 @@ export const budgetService = {
       return null;
     }
 
-    return data;
+    return data
+      ? {
+          ...data,
+          limit: data.budget_limit ?? data.limit ?? 0,
+        }
+      : null;
   },
 
   // Cập nhật số tiền đã chi cho ngân sách
