@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChevronRight, Wallet, Bell, Palette, Shield, Info, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ChevronRight, Wallet, Bell, Palette, Shield, Info, Plus, Trash2, User } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,16 @@ import { useExpenseStore } from '@/hooks/useExpenseStore';
 import { CATEGORIES, Category } from '@/types/expense';
 import { formatCurrency } from '@/lib/format';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Settings = () => {
   const { budgets, addBudget, deleteBudget } = useExpenseStore();
+  const { user, updateUserName, loading } = useAuth();
   const [isAddBudgetOpen, setIsAddBudgetOpen] = useState(false);
-  const [notifications, setNotifications] = useState(true);
+  const [budgetAlert, setBudgetAlert] = useState(true);
+  const [dailyReminder, setDailyReminder] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
   
   const [newBudget, setNewBudget] = useState({
     category: 'food' as Category,
@@ -23,6 +28,30 @@ const Settings = () => {
   });
   
   const expenseCategories = CATEGORIES.filter(c => c.id !== 'income');
+
+  useEffect(() => {
+    if (user?.name) {
+      setDisplayName(user.name);
+      setIsEditingName(false);
+    }
+  }, [user?.name]);
+
+  useEffect(() => {
+    const storedBudgetAlert = localStorage.getItem('budgetAlert');
+    if (storedBudgetAlert !== null) {
+      setBudgetAlert(storedBudgetAlert === 'true');
+    }
+
+    const storedReminder = localStorage.getItem('dailyReminder');
+    if (storedReminder) {
+      setDailyReminder(storedReminder === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('budgetAlert', budgetAlert ? 'true' : 'false');
+    localStorage.setItem('dailyReminder', dailyReminder ? 'true' : 'false');
+  }, [dailyReminder, budgetAlert]);
   
   const formatInputAmount = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -53,6 +82,16 @@ const Settings = () => {
     setNewBudget({ category: 'food', limit: '', period: 'monthly' });
     setIsAddBudgetOpen(false);
   };
+
+  const handleSaveName = async () => {
+    if (!displayName.trim()) {
+      toast.error('Tên không được để trống');
+      return;
+    }
+    await updateUserName(displayName.trim());
+    toast.success('Đã cập nhật tên');
+    setIsEditingName(false);
+  };
   
   return (
     <MobileLayout>
@@ -61,6 +100,51 @@ const Settings = () => {
       </header>
       
       <div className="px-4 space-y-6">
+        {/* Profile */}
+        <section>
+          <h2 className="font-semibold flex items-center gap-2 mb-3">
+            <User className="w-4 h-4 text-primary" />
+            Hồ sơ
+          </h2>
+          <div className="bg-card rounded-xl border border-border/50 p-4 space-y-3">
+            <label className="text-sm font-medium text-muted-foreground">Tên hiển thị</label>
+            {!isEditingName ? (
+              <div className="flex items-center justify-between">
+                <p className="font-medium text-sm text-foreground">{displayName || 'Chưa đặt tên'}</p>
+                <Button size="sm" variant="outline" onClick={() => setIsEditingName(true)} disabled={loading}>
+                  Chỉnh sửa
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Nhập tên"
+                  disabled={loading}
+                />
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveName} disabled={loading} className="flex-1">
+                    Lưu tên
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setDisplayName(user?.name || '');
+                      setIsEditingName(false);
+                    }}
+                    className="flex-1"
+                    disabled={loading}
+                  >
+                    Hủy
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* Budget Management */}
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -184,14 +268,26 @@ const Settings = () => {
                 <p className="font-medium text-sm">Cảnh báo vượt ngân sách</p>
                 <p className="text-xs text-muted-foreground">Nhận thông báo khi chi tiêu vượt hạn mức</p>
               </div>
-              <Switch checked={notifications} onCheckedChange={setNotifications} />
+              <Switch
+                checked={budgetAlert}
+                onCheckedChange={(value) => {
+                  setBudgetAlert(value);
+                  toast.success(value ? 'Đã bật cảnh báo vượt ngân sách' : 'Đã tắt cảnh báo vượt ngân sách');
+                }}
+              />
             </div>
             <div className="flex items-center justify-between p-4">
               <div>
                 <p className="font-medium text-sm">Nhắc nhở hàng ngày</p>
                 <p className="text-xs text-muted-foreground">Nhắc nhở ghi chép chi tiêu</p>
               </div>
-              <Switch />
+              <Switch
+                checked={dailyReminder}
+                onCheckedChange={(value) => {
+                  setDailyReminder(value);
+                  toast.success(value ? 'Đã bật nhắc nhở hàng ngày' : 'Đã tắt nhắc nhở hàng ngày');
+                }}
+              />
             </div>
           </div>
         </section>

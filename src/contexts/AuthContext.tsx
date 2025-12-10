@@ -129,6 +129,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('user');
     };
 
+    const updateUserName = async (name: string) => {
+        setUser((prev) => {
+            if (!prev) return prev;
+            const updated = { ...prev, name, updatedAt: new Date().toISOString() };
+            localStorage.setItem('user', JSON.stringify(updated));
+            return updated;
+        });
+
+        try {
+            await supabase.from('users').update({ name }).eq('id', user?.id);
+        } catch (err) {
+            console.error('Failed to update user name:', err);
+        }
+    };
+
     const login = async () => {
         // Re-fetch user info from Zalo if needed
         setLoading(true);
@@ -148,7 +163,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, error }}>
+        <AuthContext.Provider value={{ user, login, logout, updateUserName, loading, error }}>
             {children}
         </AuthContext.Provider>
     );

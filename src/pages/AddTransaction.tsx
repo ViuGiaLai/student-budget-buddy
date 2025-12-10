@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Check, UtensilsCrossed, GraduationCap, Car, Gamepad2, ShoppingBag, Heart, Receipt, Wallet, MoreHorizontal, Circle, LucideIcon } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
@@ -9,6 +9,7 @@ import { useExpenseStore } from '@/hooks/useExpenseStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { CATEGORIES, Category, TransactionType } from '@/types/expense';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import { toast } from 'sonner';
 
 const iconMap: Record<string, LucideIcon> = {
@@ -19,7 +20,8 @@ const AddTransaction = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { addTransaction } = useExpenseStore();
+  const { addTransaction, budgets, getBudgetStatus } = useExpenseStore();
+  const [budgetAlertEnabled, setBudgetAlertEnabled] = useState(true);
   
   const initialType = searchParams.get('type') as TransactionType || 'expense';
   
@@ -34,6 +36,13 @@ const AddTransaction = () => {
   
   const displayCategories = type === 'income' ? incomeCategories : expenseCategories;
   
+  useEffect(() => {
+    const stored = localStorage.getItem('budgetAlert');
+    if (stored !== null) {
+      setBudgetAlertEnabled(stored === 'true');
+    }
+  }, []);
+
   const handleSubmit = async () => {
     if (!amount || parseFloat(amount) <= 0) {
       toast.error('Vui lòng nhập số tiền hợp lệ');
@@ -54,6 +63,17 @@ const AddTransaction = () => {
         note: note.trim(),
       });
       toast.success(type === 'income' ? 'Đã thêm thu nhập' : 'Đã thêm chi tiêu');
+
+      if (type === 'expense' && budgetAlertEnabled) {
+        const exceededBudget = budgets.find((b) => b.category === category && getBudgetStatus(b.id).spent > b.limit);
+        if (exceededBudget) {
+          const status = getBudgetStatus(exceededBudget.id);
+          toast.warning(
+            `Bạn đã vượt hạn mức ${formatCurrency(exceededBudget.limit)} cho danh mục này. Đã chi ${formatCurrency(status.spent)}.`,
+          );
+        }
+      }
+
       navigate('/');
     } catch (error) {
       console.error('Error adding transaction:', error);
