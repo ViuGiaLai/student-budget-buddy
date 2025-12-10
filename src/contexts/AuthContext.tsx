@@ -17,8 +17,8 @@ const generateRandomAvatar = (): string => {
 // Helper to normalize Zalo display name
 const getDisplayName = (userInfo: any) => {
     return (
-        userInfo?.name ||
         userInfo?.displayName ||
+        userInfo?.name ||
         userInfo?.user_alias ||
         userInfo?.id ||
         'Sinh viên'

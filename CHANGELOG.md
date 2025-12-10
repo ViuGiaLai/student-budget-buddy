@@ -1,5 +1,12 @@
 # Nhật ký thay đổi
 
+## [1.0.2] - 2025-12-10
+
+### 🐛 Sửa lỗi
+- Sửa Bottom Navigation bị co giãn do chiều cao không khớp
+- Sửa AuthContext lấy userID làm tên thay vì displayName
+- Ưu tiên lấy displayName từ Zalo trước, rồi đến name
+
 ## [1.0.1] - 2025-12-10
 
 ### ✨ Cải tiến
