@@ -33,9 +33,9 @@ const Statistics = () => {
   
   return (
     <MobileLayout>
-      <header className="px-4 py-4 pt-5 safe-area-top" style={{marginTop: "20px"}}><h1 className="font-bold text-xl">Thống kê</h1></header>
+      {/* <header className="px-4 py-4 pt-5 safe-area-top" style={{marginTop: "20px"}}><h1 className="font-bold text-xl">Thống kê</h1></header> */}
       
-      <div className="px-4 mb-4">
+      <div className="px-4 mb-4 mt-6">
         <div className="flex bg-secondary rounded-xl p-1">
           <button onClick={() => setPeriod('week')} className={cn("flex-1 py-2.5 rounded-lg font-medium text-sm transition-all", period === 'week' ? "bg-card shadow-sm text-foreground" : "text-muted-foreground")}>Tuần này</button>
           <button onClick={() => setPeriod('month')} className={cn("flex-1 py-2.5 rounded-lg font-medium text-sm transition-all", period === 'month' ? "bg-card shadow-sm text-foreground" : "text-muted-foreground")}>Tháng này</button>

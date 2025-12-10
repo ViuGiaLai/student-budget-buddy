@@ -56,8 +56,8 @@ const Settings = () => {
   
   return (
     <MobileLayout>
-      <header className="px-4 py-4 pt-5 safe-area-top" style={{marginTop: "20px"}}>
-        <h1 className="font-bold text-xl">Cài đặt</h1>
+      <header className="px-4 py-4 pt-5 safe-area-top mt-2">
+        {/* <h1 className="font-bold text-xl">Cài đặt</h1> */}
       </header>
       
       <div className="px-4 space-y-6">
