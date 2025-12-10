@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "Sổ chi tiêu Viu",
-    "textColor": "black",
+    "textColor": "white",
     "headerColor": "#0b824f",
     "statusBarColor": "#0b824f",
     "statusBar": "normal",
